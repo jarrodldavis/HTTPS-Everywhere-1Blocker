@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import re
+import uuid
 from bs4 import BeautifulSoup
 
 
@@ -107,16 +108,29 @@ def generate_json(targets, output, skipped_files=None, good_files=0):
               + 'for now')
         return
 
-    objs = []
+    rules = []
     for target in targets:
         # Here is where the JSON object is generated. Edit the lines below to
         # output different JSON
-        objs.append({'trigger':
-                        {'url-filter': 'http://' + re.escape(target)},
-                     'action':
-                        {'type': 'make-https'}
-                    })
-    json_output = json.dumps(objs, indent=2, separators=(',', ': '))
+        rules.append({
+            'id': str(uuid.uuid4()),
+            'name': 'HTTPS Everywhere: ' + target, # TODO: get better website name from file
+            'content': {
+                'trigger': {
+                    'url-filter': 'http://' + re.escape(target)
+                },
+                'action': {
+                    'type': 'make-https'
+                }
+            }
+        })
+
+    package = [{
+        'id': str(uuid.uuid4()),
+        'name': 'HTTPS Everywhere',
+        'rules': rules
+    }]
+    json_output = json.dumps(package, indent=2, separators=(',', ': '))
 
     # Send to stdout or write to a file
     if output is None:
